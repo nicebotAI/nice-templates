@@ -1,0 +1,1517 @@
+{
+  "name": "ChatToTwilioWSentiment",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an assistant to {name}, a highly sought-after and accomplished fashion photographer. Your role is to interact with potential clients, answer their questions, and provide detailed information about {name}'s career, his photography expertise, and his portfolio of past assignments. \n\nEngage users in a friendly and professional tone, tailoring your responses to their interests and needs. For example, if a user asks about {name}'s work, provide specific examples of his past assignments. If they inquire about his availability, respond with enthusiasm and offer to help them schedule a meeting with {name}.\n\nProactively ask follow-up questions to better understand their needs, such as:\n\n\What type of photography are you interested in? Is it editorial, commercial, or personal projects?\Would you like to schedule a time to meet with {name} to discuss your vision in detail?\If the user expresses interest in scheduling, generate a Calendly link (e.g., https://calendly.com/{link-address}) and share it with them, saying:\n\n\That’s great! You can use this link to schedule a convenient time to meet with {name}: [Calendly Link].\\n Periodically, check in to ensure the user is satisfied with the conversation by asking:\n\n\Are you finding the app helpful so far? I’d love to hear your feedback! \n\Would you like to leave a comment or suggestion to help us improve?\\nMaintain a warm, engaging, and helpful tone throughout the conversation, ensure the user feels valued and supported.",
+          "maxIterations": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        0,
+        1200
+      ],
+      "id": "2d70e296-7d84-47b6-9d44-8a93cc4e79a5",
+      "name": "AI Agent",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -120,
+        1460
+      ],
+      "id": "74411911-fd1e-481c-ab45-6ef44516937d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          
+          "id": "z6o253JNYzNHtvG2",
+          "name": "OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! 👋\nMy name is Bullet. I am {name}'s Personal Assistant. How can I help you today?",
+        "options": {
+          "responseMode": "lastNode",
+          "subtitle": "Welcome to our Chat! What can I help you with today?",
+          "title": "Assistant Chat "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -780,
+        900
+      ],
+      "id": "39f1f263-be5e-4e67-81a5-69dc08c2114b",
+      "name": "When chat message received",
+      "webhookId": "7fc3252e-3c68-4f97-a2d7-047f986c065c"
+    },
+    {
+      "parameters": {
+        "name": "Pinecone_CP_docs",
+        "description": "Contains documents about the website"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        280,
+        1440
+      ],
+      "id": "44dbf47a-0f76-4886-b075-75e3b2ffa9ab",
+      "name": "Vector Store Tool"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        680,
+        1640
+      ],
+      "id": "8f638d00-4598-45f7-9810-4e1b9ae85144",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "z6o253JNYzNHtvG2",
+          "name": "OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        1840
+      ],
+      "id": "c797c24f-6b80-4809-9809-561b9618bd30",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "z6o253JNYzNHtvG2",
+          "name": "OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "12345",
+          "mode": "list",
+          "cachedResultName": "n8n-source",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/12345"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        2380
+      ],
+      "id": "cf2e59d7-78d7-4e0f-8dbb-8f2482eed172",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "12345",
+          "name": "OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "12345",
+          "mode": "list",
+          "cachedResultName": "n8n-source",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/12345"
+        },
+        "event": "fileUpdated",
+        "options": {
+          "fileType": "all"
+        }
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -180,
+        2120
+      ],
+      "id": "3b1c6a3e-6d0d-4622-95b3-497112ec2b2c",
+      "name": "Google File Created",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "12345,
+          "name": "OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.file_id }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "text/plain"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        300,
+        2260
+      ],
+      "id": "cc24f252-85a6-47d1-9a73-7294f7bbc2db",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "12345",
+          "name": "OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.1,
+      "position": [
+        580,
+        2540
+      ],
+      "id": "07a63d27-f005-4ebb-97e7-3ff29779ca91",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "z6o253JNYzNHtvG2",
+          "name": "OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        820,
+        2520
+      ],
+      "id": "72991b1e-a7c2-4903-92b3-1fd968df5970",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 25,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        940,
+        2720
+      ],
+      "id": "1920694a-bb83-42ad-af77-39de71d0370d",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "c-productions-archive",
+          "mode": "list",
+          "cachedResultName": "c-productions-archive"
+        },
+        "options": {
+          "pineconeNamespace": "productions-archive"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        600,
+        2260
+      ],
+      "id": "b23bf524-59ad-41d6-a164-f47efd15c250",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "DiskPnYCDgYUq9EJ",
+          "name": "Pinecone-OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c434612f-f0e5-4579-b5de-ba474a0937d3",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        60,
+        2260
+      ],
+      "id": "1a4ead3e-b59d-41cb-923b-814a9a5f9b9f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c43132a7-c760-4b0d-aecc-880526a41487",
+              "leftValue": "={{ $json.chatInput }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -160,
+        900
+      ],
+      "id": "ddf98d54-2873-46d2-b84e-7fa700e544f6",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "from": "=14155238886",
+        "to": "+16506861243",
+        "toWhatsapp": true,
+        "message": "=Chat has engaged. Here is the latest message ...  {{ $json.chatInput }} .... and here is your latest sentment anlysis Here is your sentiment analysis chart: \n{{ $json.url }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        2940,
+        800
+      ],
+      "id": "1ea4381c-5892-4e7f-b7a1-0120e1920327",
+      "name": "Twilio",
+      "alwaysOutputData": true,
+      "credentials": {
+        "twilioApi": {
+          "id": "Rfbh3ez8TV0vf1X5",
+          "name": "TwilioSandbox"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        160,
+        1000
+      ],
+      "id": "3e0cf996-7f14-4aa1-ad56-a4ae45fa7781",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "labelsUi": {
+          "labelsValues": [
+            {
+              "label": "={{ $json.labels }}"
+            }
+          ]
+        },
+        "data": "={{$json.data}}",
+        "output": "=data\n",
+        "chartOptions": {
+          "backgroundColor": "#30ea0aff",
+          "format": "png"
+        },
+        "datasetOptions": {
+          "backgroundColor": "",
+          "borderColor": "#dce7e6ff",
+          "label": "Current Sentiment Counts"
+        }
+      },
+      "type": "n8n-nodes-base.quickChart",
+      "typeVersion": 1,
+      "position": [
+        2640,
+        340
+      ],
+      "id": "5bba9db8-bd52-4d55-8249-d31e8bfb5aa8",
+      "name": "QuickChart",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "field": "sentiment"
+            }
+          ]
+        },
+        "fieldsToSplitBy": "=sentiment",
+        "options": {
+          "continueIfFieldNotFound": true,
+          "disableDotNotation": false,
+          "outputFormat": "separateItems"
+        }
+      },
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1,
+      "position": [
+        2200,
+        580
+      ],
+      "id": "1d136d08-5238-40ea-8b36-7f78b0866e2c",
+      "name": "Summarize",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "77868554-b80b-437c-abeb-4c802210f146",
+              "name": "output.sessionId",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "ec860207-94a5-4dd4-b77d-cb1ef95fc374",
+              "name": "output.sentiment",
+              "value": "={{ $json.sentimentAnalysis.category }}",
+              "type": "string"
+            },
+            {
+              "id": "ef14e058-29b6-4314-beeb-0d5609ece036",
+              "name": "output.score",
+              "value": "={{ $json.sentimentAnalysis.strength }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        440
+      ],
+      "id": "7f7d3035-045a-48f1-8be5-5bb401fe5fef",
+      "name": "GetSentiment"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "41460143-6558-4000-a98b-328bba630032",
+              "name": "chatInput",
+              "value": "={{ $('When chat message received').item.json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "7a8e858e-09c3-4d4c-967a-007d6adf09f7",
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        300,
+        800
+      ],
+      "id": "77e8123a-243f-4d01-85be-0faa014abf1a",
+      "name": "GetChat"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "={{ $json.sessionId }},{{ $json.sessionId }}",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        680,
+        580
+      ],
+      "id": "65ef7b24-21d5-4169-a8e0-78bc808aeb66",
+      "name": "Merge",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.chatInput }}",
+        "options": {
+          "categories": "Positive, Neutral, Negative",
+          "systemPromptTemplate": "You are highly intelligent and accurate sentiment analyzer. Analyze the sentiment of the provided text. Categorize it into one of the following: {categories}. Use the provided formatting instructions. Only output the JSON. \n\n",
+          "includeDetailedResults": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.sentimentAnalysis",
+      "typeVersion": 1,
+      "position": [
+        -300,
+        460
+      ],
+      "id": "ad8343a6-77b2-4132-abb6-841a1c19e400",
+      "name": "Sentiment Analysis"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        680
+      ],
+      "id": "be494cd6-3bce-4c63-9d1c-b8d6277f3f49",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "z6o253JNYzNHtvG2",
+          "name": "OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 25
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        40,
+        1460
+      ],
+      "id": "87994b1f-a02f-4ec1-9f3c-3f7e11f81a8a",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "wZAZ316r8FgfsRoC",
+          "name": "PostgresChatMemory-OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "c-productions-archive",
+          "mode": "list",
+          "cachedResultName": "c-productions-archive"
+        },
+        "options": {
+          "pineconeNamespace": "productions-archive"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1,
+      "position": [
+        340,
+        1640
+      ],
+      "id": "cc9472c6-9d46-45a2-8042-626f571c703b",
+      "name": "Pinecone_CP_docs",
+      "credentials": {
+        "pineconeApi": {
+          "id": "DiskPnYCDgYUq9EJ",
+          "name": "Pinecone-OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items[0].json;\nreturn [input.output];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        440
+      ],
+      "id": "a60fb016-e2b7-4a89-9628-cdd9f6525f3c",
+      "name": "jsonSentiment"
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatData = $(\"GetChat\").all()[0]?.json;\nconst sentimentData = $(\"jsonSentiment\").all()[0]?.json;\n\nconst mergedData = {\n  ...chatData,\n  ...sentimentData,\n};\n\nreturn [{ json: mergedData }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        580
+      ],
+      "id": "b0f198b9-fd64-4d28-afa3-0a7fd4fdc604",
+      "name": "SentimentObject"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "68997ba1-047a-42ac-ad0d-3827b7b52c7d",
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "1c4b8d05-1ed1-4e18-9a81-2b038c13db9c",
+              "name": "chatInput",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "d559c55e-ca25-47d0-b5df-d25b0ddfaefa",
+              "name": "sentiment",
+              "value": "={{ $json.sentiment }}",
+              "type": "string"
+            },
+            {
+              "id": "68d5b11b-bf10-4729-b4b6-80e6d6087d53",
+              "name": "score",
+              "value": "={{ $json.score }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1140,
+        580
+      ],
+      "id": "91eb25bd-98ed-4cc0-82bf-e800da6edd40",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "sessionId",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1580,
+        560
+      ],
+      "id": "4bcb8ea0-89ac-4a16-a698-a9578d810781",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appjfaIeYtlHDJmZN",
+          "mode": "list",
+          "cachedResultName": "C_Productions_Base",
+          "cachedResultUrl": "https://airtable.com/appjfaIeYtlHDJmZN"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblkwVcu6L4unE1EV",
+          "mode": "list",
+          "cachedResultName": "ChatInputSentiment",
+          "cachedResultUrl": "https://airtable.com/appjfaIeYtlHDJmZN/tblkwVcu6L4unE1EV"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chatInput": "={{ $json.chatInput }}",
+            "UpdatedAt": "={{ $today }}",
+            "sessionID": "={{ $json.sessionId }}",
+            "score": 0,
+            "sessionChatKey": "={{ $json.chatNumber }}",
+            "sentiment": "={{ $json.sentiment }}"
+          },
+          "matchingColumns": [
+            "sessionID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "sessionChatKey",
+              "displayName": "sessionChatKey",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "RowNumber",
+              "displayName": "RowNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "sessionID",
+              "displayName": "sessionID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "chatInput",
+              "displayName": "chatInput",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "UpdatedAt",
+              "displayName": "UpdatedAt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1800,
+        580
+      ],
+      "id": "3d0cc31b-d8b4-4899-8b42-00aec0576abd",
+      "name": "Load chatInputSentimentTable",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "rRrhpfadxwAgQQNT",
+          "name": "Airtable-OpenAI-n8n-assistant-chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "12345",
+          "mode": "list",
+          "cachedResultName": "C_Productions_Base",
+          "cachedResultUrl": "https://airtable.com/12345"
+        },
+        "table": {
+          "__rl": true,
+          "value": "12345",
+          "mode": "list",
+          "cachedResultName": "ChatInputSentiment",
+          "cachedResultUrl": "https://airtable.com/12345"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        2020,
+        580
+      ],
+      "id": "57dac102-5156-4f74-8801-3857a58efd70",
+      "name": "RetrieveSentimentData",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "OXznyAC22HBoOSpS",
+          "name": "Airtable-C_Productions_Base"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let labels = [];\nlet data = [];\n\nfor (const item of items) {\n    labels.push(item.json.sentiment);\n    data.push(item.json.count_sentiment);\n}\n\nreturn {\n    json: {\n        labels,\n        data\n    }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2360,
+        580
+      ],
+      "id": "57d8838a-5878-4231-8974-e128563ae23a",
+      "name": "CreateAnalyticsData",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\n// Generate a random 7-character alphanumeric string\nconst generateRandomUUID = () => {\n    return crypto.randomBytes(4).toString('hex').substring(0, 7);\n};\n\n// Add the `chatNumber` field to the root\nreturn $input.all().map(item => {\n    const chatData = item.json;\n    const chatNumber = generateRandomUUID();\n\n    return {\n        json: {\n            ...chatData,\n            chatNumber, // Add chatNumber at the root level\n        },\n    };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        680
+      ],
+      "id": "47b9c65f-8b74-417e-b7a1-24520cb4123d",
+      "name": "CreateUniqueChatNumber"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://quickchart.io/chart/create",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"chart\": {\n    \"type\": \"bar\",\n    \"data\": {\n      \"labels\": {{JSON.stringify($json[\"labels\"])}},\n      \"datasets\": [\n        {\n          \"label\": \"Sentiment Analysis\",\n          \"data\": {{JSON.stringify($json[\"data\"])}},\n          \"backgroundColor\": [\n            \"rgba(75, 192, 192, 0.2)\",\n            \"rgba(255, 99, 132, 0.2)\",\n            \"rgba(201, 203, 207, 0.2)\"\n          ],\n          \"borderColor\": [\n            \"rgba(75, 192, 192, 1)\",\n            \"rgba(255, 99, 132, 1)\",\n            \"rgba(201, 203, 207, 1)\"\n          ],\n          \"borderWidth\": 1\n        }\n      ]\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2600,
+        600
+      ],
+      "id": "5ab5960f-ff5b-4de6-bb3f-f95c84c03a85",
+      "name": "HTTP Request",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        2720,
+        800
+      ],
+      "id": "5215afbf-59b7-4078-a56d-1ea562d75737",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "content": "## Twilio Node\n ### I have a Twilio node that send a message whenever someone interacts with the chat. And includes a link to the latest sentiment analysis for all messages. The message send can be configured to trigger only for certain key words.\n",
+        "height": 260,
+        "width": 400,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2700,
+        1000
+      ],
+      "id": "81b8d034-be6c-4568-9ea8-62fcf751ca43",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Sentiment Analysis\n### Here I am collecting the chatInput and running it through a sentiment analysis. ",
+        "height": 180,
+        "width": 260,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -280,
+        240
+      ],
+      "id": "0879e808-6bf2-4e78-a1fe-33bc45b45ea7",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Sentiment Analysis Viz\n\n### I am summarizing the data from AirTable and creating a bar chart",
+        "height": 180,
+        "width": 440,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1960,
+        360
+      ],
+      "id": "7d9da013-8fa4-4568-a185-fd77c57766fb",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Pinecone RAG Vectors\n### I put all the relevant data into Pincone for the LLM RAG",
+        "height": 180,
+        "width": 320,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        620,
+        2040
+      ],
+      "id": "6302148e-dffb-4673-9289-ebdeadcf43e3",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## I save the sentiment to Airtable then I create a viz on the sentiment\n",
+        "width": 380,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        760,
+        380
+      ],
+      "id": "8854c166-a3ab-408b-9e27-769c3ee6d2b1",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "# Unique CHAT NUMBER\n\n### I had issues with session ID repeating and overwriting the data on Airtable, so I created a unique chat id using uuid rand function so every chat would have a unique identifier\n",
+        "height": 280,
+        "width": 380,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1220,
+        880
+      ],
+      "id": "a54e3226-b289-42f8-baa5-544529f8a61b",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2840,
+        340
+      ],
+      "id": "1eec6d63-39fb-4766-8bcb-9235b377bdd3",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "content": "##  Viz JSON\n\n### Create the visualization JSON for QuickChart and to create the HTTP endpoint viz",
+        "width": 380,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1980,
+        760
+      ],
+      "id": "925f818f-9c47-4ba2-ae45-31d03a31e247",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8b709b1c-9443-4ba7-b0d2-0bc36d5b1098",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2840,
+        1200
+      ],
+      "id": "cbeb2748-62d6-42d2-bc49-f414874c1f07",
+      "name": "send Twillio"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sentiment Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone_CP_docs",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google File Created": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "GetChat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "CreateAnalyticsData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetSentiment": {
+      "main": [
+        [
+          {
+            "node": "jsonSentiment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetChat": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "SentimentObject",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sentiment Analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sentiment Analysis": {
+      "main": [
+        [
+          {
+            "node": "GetSentiment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GetSentiment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "GetSentiment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone_CP_docs": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "jsonSentiment": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "SentimentObject": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "CreateUniqueChatNumber",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Load chatInputSentimentTable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load chatInputSentimentTable": {
+      "main": [
+        [
+          {
+            "node": "RetrieveSentimentData",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RetrieveSentimentData": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CreateAnalyticsData": {
+      "main": [
+        [
+          {
+            "node": "QuickChart",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CreateUniqueChatNumber": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "QuickChart": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twilio": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Twilio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "08e36c70-db13-4742-bed6-233f1e1f9c78",
+  "meta": {
+    "instanceId": "12345"
+  },
+  "id": "12345",
+  "tags": [
+    {
+      "createdAt": "2024-12-16T19:23:25.357Z",
+      "updatedAt": "2024-12-16T19:23:25.357Z",
+      "id": "12345",
+      "name": "template"
+    }
+  ]
+}
