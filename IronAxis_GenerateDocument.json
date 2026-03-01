@@ -1,1 +1,259 @@
-{"name": "Iron Axis - Generate Document", "nodes": [{"parameters": {"httpMethod": "POST", "path": "generate-document", "responseMode": "responseNode", "options": {}}, "id": "webhook-trigger", "name": "Webhook Trigger", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [0, 0], "webhookId": "generate-document"}, {"parameters": {"jsCode": "const input = $input.first().json.body || $input.first().json;\nconst docType = input.doc_type || 'estimate';\n\nconst TEMPLATES = {\n  proposal: '1DBpU6FO9e_yWcBGZqrEpNTwTsFlw5es-UlfPjeK3KH4',\n  estimate: '1pqrxGH7YU9Q9RzZmu_exVSnJPGAbJ6wk11d1Xjbj2f4',\n  contract: '1ialJGqWHB-f14_ayzbrkghkTwietLnUsjSHxTrfX7QA'\n};\n\nconst templateId = TEMPLATES[docType];\nif (!templateId) throw new Error('Unknown doc_type: ' + docType + '. Use: proposal, estimate, contract');\n\nconst now = new Date();\nconst dateStr = input.document_date || now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });\nconst prefix = docType === 'proposal' ? 'P' : docType === 'estimate' ? 'E' : 'C';\nconst num = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');\nconst docNumber = input.document_number || (prefix + '-' + now.getFullYear() + '-' + num);\nconst clientName = input.client_name || 'Client';\nconst newDocName = docType.charAt(0).toUpperCase() + docType.slice(1) + ' - ' + clientName + ' - ' + dateStr;\n\nreturn [{ json: {\n  ...input,\n  doc_type: docType,\n  template_id: templateId,\n  new_doc_name: newDocName,\n  document_date: dateStr,\n  document_number: docNumber,\n  client_name: clientName,\n  client_company: input.client_company || clientName,\n  client_email: input.client_email || '',\n  folder_id: '1h70YkMgk-YX_NovwPS929M0V2ptA26Mg'\n} }];"}, "id": "setup", "name": "Setup & Validate", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [220, 0]}, {"parameters": {"operation": "copy", "fileId": {"__rl": true, "mode": "id", "value": "={{ $json.template_id }}"}, "options": {"name": "={{ $json.new_doc_name }}", "parents": ["={{ $json.folder_id }}"]}}, "id": "copy-template", "name": "Copy Template", "type": "n8n-nodes-base.googleDrive", "typeVersion": 3, "position": [440, 0], "credentials": {"googleDriveOAuth2Api": {"id": "mI4qw14jDqNLbnHm", "name": "Google Drive account"}}}, {"parameters": {"jsCode": "const input = $('Setup & Validate').first().json;\nconst newDocId = $input.first().json.id;\n\nconst replacements = {\n  '{{CLIENT_NAME}}': input.client_name || '',\n  '{{CLIENT_COMPANY}}': input.client_company || input.client_name || '',\n  '{{CLIENT_EMAIL}}': input.client_email || '',\n  '{{PROPOSAL_DATE}}': input.document_date || '',\n  '{{PROPOSAL_NUMBER}}': input.document_number || '',\n  '{{ESTIMATE_DATE}}': input.document_date || '',\n  '{{ESTIMATE_NUMBER}}': input.document_number || '',\n  '{{CONTRACT_DATE}}': input.document_date || '',\n  '{{CONTRACT_NUMBER}}': input.document_number || '',\n  '{{EXECUTIVE_SUMMARY}}': input.executive_summary || '',\n  '{{PROJECT_SCOPE}}': input.project_scope || '',\n  '{{PROJECT_DESCRIPTION}}': input.project_description || '',\n  '{{DELIVERABLES_TABLE}}': input.deliverables_table || '',\n  '{{TIMELINE}}': input.timeline || '',\n  '{{PRICING_TABLE}}': input.pricing_table || '',\n  '{{TOTAL_COST}}': input.total_cost || '',\n  '{{TOTAL_FEE}}': input.total_fee || '',\n  '{{SUBTOTAL}}': input.subtotal || '',\n  '{{TAX}}': input.tax || '',\n  '{{TOTAL}}': input.total || '',\n  '{{LINE_ITEMS_TABLE}}': input.line_items_table || '',\n  '{{PAYMENT_TERMS}}': input.payment_terms || '',\n  '{{PAYMENT_SCHEDULE}}': input.payment_schedule || '',\n  '{{NEXT_STEPS}}': input.next_steps || '',\n  '{{NOTES}}': input.notes || '',\n  '{{VALID_UNTIL}}': input.valid_until || '',\n  '{{CLIENT_ADDRESS}}': input.client_address || '',\n  '{{SCOPE_OF_SERVICES}}': input.scope_of_services || '',\n  '{{START_DATE}}': input.start_date || '',\n  '{{END_DATE}}': input.end_date || '',\n  '{{MILESTONES}}': input.milestones || '',\n};\n\nconst actions = [];\nfor (const [placeholder, value] of Object.entries(replacements)) {\n  if (value) {\n    actions.push({\n      action: 'replaceAll',\n      matchCase: true,\n      find: placeholder,\n      replace: String(value)\n    });\n  }\n}\n\nreturn [{ json: {\n  new_doc_id: newDocId,\n  actions,\n  doc_type: input.doc_type,\n  client_name: input.client_name,\n  client_email: input.client_email,\n  document_date: input.document_date,\n  new_doc_name: $('Setup & Validate').first().json.new_doc_name\n} }];"}, "id": "build-replacements", "name": "Build Replacements", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [660, 0]}, {"parameters": {"operation": "update", "documentURL": "={{ $json.new_doc_id }}", "actionsUi": {"actionFields": "={{ $json.actions }}"}}, "id": "replace-placeholders", "name": "Replace Placeholders", "type": "n8n-nodes-base.googleDocs", "typeVersion": 2, "position": [880, 0], "credentials": {"googleDocsOAuth2Api": {"id": "aGcNYD7zu5UvGQl5", "name": "Google Docs account"}}}, {"parameters": {"operation": "download", "fileId": {"__rl": true, "mode": "id", "value": "={{ $('Build Replacements').first().json.new_doc_id }}"}, "options": {"googleFileConversion": {"conversion": {"docsToFormat": "application/pdf"}}, "fileName": "={{ $('Build Replacements').first().json.new_doc_name }}.pdf"}}, "id": "export-pdf", "name": "Export PDF", "type": "n8n-nodes-base.googleDrive", "typeVersion": 3, "position": [1100, 0], "credentials": {"googleDriveOAuth2Api": {"id": "mI4qw14jDqNLbnHm", "name": "Google Drive account"}}}, {"parameters": {"sendTo": "={{ $('Build Replacements').first().json.client_email || 'bot151@ironaxis.cloud' }}", "subject": "={{ $('Build Replacements').first().json.new_doc_name }} \u2014 Iron Axis Digital Studios", "emailType": "html", "message": "=<div style=\"font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto\"><div style=\"background:#0052B4;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0\"><h2 style=\"margin:0\">Iron Axis Digital Studios LLC</h2></div><div style=\"padding:20px;background:#f9f9f9\"><p>Hello {{ $('Build Replacements').first().json.client_name }},</p><p>Please find attached your {{ $('Build Replacements').first().json.doc_type }} for review.</p><p>If you have any questions, please don't hesitate to reach out.</p><p>Best regards,<br><strong>M. Concordia</strong><br>Iron Axis Digital Studios LLC<br>650.223.5945 | support@ironaxis.digital</p></div></div>", "options": {"attachmentsUi": {"attachmentsBinary": [{"binaryPropertyName": "data"}]}}}, "id": "send-email", "name": "Email to Client", "type": "n8n-nodes-base.gmail", "typeVersion": 2.1, "position": [1320, 0], "credentials": {"gmailOAuth2": {"id": "DUnnVoxakTW8tGAi", "name": "Gmail account"}}}, {"parameters": {"respondWith": "json", "responseBody": "={{ JSON.stringify({ success: true, doc_id: $('Build Replacements').first().json.new_doc_id, doc_name: $('Build Replacements').first().json.new_doc_name, doc_url: 'https://docs.google.com/document/d/' + $('Build Replacements').first().json.new_doc_id + '/edit', emailed_to: $('Build Replacements').first().json.client_email || 'bot151@ironaxis.cloud' }) }}", "options": {}}, "id": "respond", "name": "Respond", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.1, "position": [1540, 0]}], "connections": {"Webhook Trigger": {"main": [[{"node": "Setup & Validate", "type": "main", "index": 0}]]}, "Setup & Validate": {"main": [[{"node": "Copy Template", "type": "main", "index": 0}]]}, "Copy Template": {"main": [[{"node": "Build Replacements", "type": "main", "index": 0}]]}, "Build Replacements": {"main": [[{"node": "Replace Placeholders", "type": "main", "index": 0}]]}, "Replace Placeholders": {"main": [[{"node": "Export PDF", "type": "main", "index": 0}]]}, "Export PDF": {"main": [[{"node": "Email to Client", "type": "main", "index": 0}]]}, "Email to Client": {"main": [[{"node": "Respond", "type": "main", "index": 0}]]}}, "settings": {"executionOrder": "v1"}}
+{
+  "name": "Iron Axis - Generate Document",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-document",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "930ea6ac-3576-433b-8d7b-8179682ab59f",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "generate-document"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\nconst docType = input.doc_type || 'estimate';\n\nconst TEMPLATES = {\n  proposal: '1DBpU6FO9e_yWcBGZqrEpNTwTsFlw5es-UlfPjeK3KH4',\n  estimate: '1pqrxGH7YU9Q9RzZmu_exVSnJPGAbJ6wk11d1Xjbj2f4',\n  contract: '1ialJGqWHB-f14_ayzbrkghkTwietLnUsjSHxTrfX7QA'\n};\n\nconst templateId = TEMPLATES[docType];\nif (!templateId) throw new Error('Unknown doc_type: ' + docType + '. Use: proposal, estimate, contract');\n\nconst now = new Date();\nconst dateStr = input.document_date || now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });\nconst prefix = docType === 'proposal' ? 'P' : docType === 'estimate' ? 'E' : 'C';\nconst num = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');\nconst docNumber = input.document_number || (prefix + '-' + now.getFullYear() + '-' + num);\nconst clientName = input.client_name || 'Client';\nconst newDocName = docType.charAt(0).toUpperCase() + docType.slice(1) + ' - ' + clientName + ' - ' + dateStr;\n\nreturn [{ json: {\n  ...input,\n  doc_type: docType,\n  template_id: templateId,\n  new_doc_name: newDocName,\n  document_date: dateStr,\n  document_number: docNumber,\n  client_name: clientName,\n  client_company: input.client_company || clientName,\n  client_email: input.client_email || '',\n  folder_id: '1h70YkMgk-YX_NovwPS929M0V2ptA26Mg'\n} }];"
+      },
+      "id": "f5f94a4c-d5da-4972-8818-c3f0621f0ee3",
+      "name": "Setup & Validate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.template_id }}"
+        },
+        "options": {}
+      },
+      "id": "bcb9bbed-9d92-414e-8fa5-82e4c6a9cf13",
+      "name": "Copy Template",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "mI4qw14jDqNLbnHm",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Setup & Validate').first().json;\nconst newDocId = $input.first().json.id;\n\nconst replacements = {\n  '{{CLIENT_NAME}}': input.client_name || '',\n  '{{CLIENT_COMPANY}}': input.client_company || input.client_name || '',\n  '{{CLIENT_EMAIL}}': input.client_email || '',\n  '{{PROPOSAL_DATE}}': input.document_date || '',\n  '{{PROPOSAL_NUMBER}}': input.document_number || '',\n  '{{ESTIMATE_DATE}}': input.document_date || '',\n  '{{ESTIMATE_NUMBER}}': input.document_number || '',\n  '{{CONTRACT_DATE}}': input.document_date || '',\n  '{{CONTRACT_NUMBER}}': input.document_number || '',\n  '{{EXECUTIVE_SUMMARY}}': input.executive_summary || '',\n  '{{PROJECT_SCOPE}}': input.project_scope || '',\n  '{{PROJECT_DESCRIPTION}}': input.project_description || '',\n  '{{DELIVERABLES_TABLE}}': input.deliverables_table || '',\n  '{{TIMELINE}}': input.timeline || '',\n  '{{PRICING_TABLE}}': input.pricing_table || '',\n  '{{TOTAL_COST}}': input.total_cost || '',\n  '{{TOTAL_FEE}}': input.total_fee || '',\n  '{{SUBTOTAL}}': input.subtotal || '',\n  '{{TAX}}': input.tax || '',\n  '{{TOTAL}}': input.total || '',\n  '{{LINE_ITEMS_TABLE}}': input.line_items_table || '',\n  '{{PAYMENT_TERMS}}': input.payment_terms || '',\n  '{{PAYMENT_SCHEDULE}}': input.payment_schedule || '',\n  '{{NEXT_STEPS}}': input.next_steps || '',\n  '{{NOTES}}': input.notes || '',\n  '{{VALID_UNTIL}}': input.valid_until || '',\n  '{{CLIENT_ADDRESS}}': input.client_address || '',\n  '{{SCOPE_OF_SERVICES}}': input.scope_of_services || '',\n  '{{START_DATE}}': input.start_date || '',\n  '{{END_DATE}}': input.end_date || '',\n  '{{MILESTONES}}': input.milestones || '',\n};\n\nconst actions = [];\nfor (const [placeholder, value] of Object.entries(replacements)) {\n  if (value) {\n    actions.push({\n      action: 'replaceAll',\n      matchCase: true,\n      find: placeholder,\n      replace: String(value)\n    });\n  }\n}\n\nreturn [{ json: {\n  new_doc_id: newDocId,\n  actions,\n  doc_type: input.doc_type,\n  client_name: input.client_name,\n  client_email: input.client_email,\n  document_date: input.document_date,\n  new_doc_name: $('Setup & Validate').first().json.new_doc_name\n} }];"
+      },
+      "id": "889d6322-2f98-48e2-9f67-604d55b5f890",
+      "name": "Build Replacements",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Build Replacements').first().json.new_doc_id }}"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          },
+          "fileName": "={{ $('Build Replacements').first().json.new_doc_name }}.pdf"
+        }
+      },
+      "id": "7313b3e5-e05c-482f-9ee3-b8382af0d5d7",
+      "name": "Export PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1104,
+        0
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "mI4qw14jDqNLbnHm",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Build Replacements').first().json.client_email || 'bot151@ironaxis.cloud' }}",
+        "subject": "={{ $('Build Replacements').first().json.new_doc_name }} \u2014 Iron Axis Digital Studios",
+        "message": "=<div style=\"font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto\"><div style=\"background:#0052B4;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0\"><h2 style=\"margin:0\">Iron Axis Digital Studios LLC</h2></div><div style=\"padding:20px;background:#f9f9f9\"><p>Hello {{ $('Build Replacements').first().json.client_name }},</p><p>Please find attached your {{ $('Build Replacements').first().json.doc_type }} for review.</p><p>If you have any questions, please don't hesitate to reach out.</p><p>Best regards,<br><strong>M. Concordia</strong><br>Iron Axis Digital Studios LLC<br>650.223.5945 | support@ironaxis.digital</p></div></div>",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {}
+            ]
+          }
+        }
+      },
+      "id": "65a1b067-e850-4917-8954-3c7db5720066",
+      "name": "Email to Client",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1328,
+        0
+      ],
+      "webhookId": "0b6e6783-1856-402a-a32a-619e6378c963",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "DUnnVoxakTW8tGAi",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, doc_id: $('Build Replacements').first().json.new_doc_id, doc_name: $('Build Replacements').first().json.new_doc_name, doc_url: 'https://docs.google.com/document/d/' + $('Build Replacements').first().json.new_doc_id + '/edit', emailed_to: $('Build Replacements').first().json.client_email || 'bot151@ironaxis.cloud' }) }}",
+        "options": {}
+      },
+      "id": "cd221070-33d5-4438-98f3-9a26a9e76fe6",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1552,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://docs.googleapis.com/v1/documents/{{ $json.new_doc_id }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDocsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ requests: $json.actions.map(a => ({ replaceAllText: { containsText: { text: a.find, matchCase: a.matchCase }, replaceText: a.replace } })) }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        896,
+        0
+      ],
+      "id": "2266d334-ed92-4292-a026-cbf65d3dd6be",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "aGcNYD7zu5UvGQl5",
+          "name": "Google Docs account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Setup & Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Setup & Validate": {
+      "main": [
+        [
+          {
+            "node": "Copy Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy Template": {
+      "main": [
+        [
+          {
+            "node": "Build Replacements",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Replacements": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export PDF": {
+      "main": [
+        [
+          {
+            "node": "Email to Client",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email to Client": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Export PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false,
+    "callerPolicy": "workflowsFromSameOwner"
+  }
+}
